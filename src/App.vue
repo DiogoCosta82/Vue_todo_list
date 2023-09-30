@@ -19,27 +19,39 @@
       <tbody>
         <tr v-for="task in tasks" :key="task.id">
           <td :class="{ 'text-decoration-line-through': task.completed }">
-            {{ task.name }}
-          </td>
-          <td class="text-end">
-            <button
-              @click="toggleCompletion(task.id)"
-              :class="[
-                task.completed
-                  ? 'btn btn-outline-warning text-black'
-                  : 'btn btn-success',
-                'me-2',
-              ]"
-            >
-              {{ task.completed ? "Annuler" : "Accomplie" }}
-            </button>
-
-            <button
-              @click="confirmDeleteTask(task.id)"
-              class="btn btn-danger me-2"
-            >
-              Supprimer
-            </button>
+            <div class="row">
+              <div class="col-md-8" style="text-align: left">
+                <input
+                  v-if="task.editing"
+                  v-model="task.newName"
+                  type="text"
+                  class="form-control"
+                />
+                <span v-else>{{ task.name }}</span>
+              </div>
+              <div class="col-md-4 text-end">
+                <button
+                  @click="toggleCompletion(task.id)"
+                  :class="[
+                    task.completed
+                      ? 'btn btn-outline-warning text-black'
+                      : 'btn btn-success',
+                    'me-2',
+                  ]"
+                >
+                  {{ task.completed ? "Annuler Complete" : "Marquer Complete" }}
+                </button>
+                <button @click="toggleEdit(task)" class="btn btn-primary me-2">
+                  {{ task.editing ? "Sauvegarder" : "Modifier" }}
+                </button>
+                <button
+                  @click="confirmDeleteTask(task.id)"
+                  class="btn btn-danger me-2"
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -49,6 +61,7 @@
 
 <script>
 import axios from "axios";
+
 export default {
   data() {
     return {
@@ -56,9 +69,12 @@ export default {
     };
   },
   mounted() {
-    // Initialize tasks from server
     axios.get("http://localhost:3000/tasks").then((res) => {
-      this.tasks = res.data;
+      this.tasks = res.data.map((task) => ({
+        ...task,
+        editing: false,
+        newName: "",
+      }));
     });
 
     // Listen for changes
@@ -68,14 +84,41 @@ export default {
     });
   },
   methods: {
+    toggleEdit(task) {
+      if (task.editing) {
+        this.editTask(task);
+      } else {
+        task.newName = task.name;
+      }
+      task.editing = !task.editing;
+    },
+    editTask(task) {
+      if (task.newName !== task.name) {
+        axios
+          .put(`http://localhost:3000/tasks/${task.id}`, { name: task.newName })
+          .then(() => {
+            task.name = task.newName;
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    },
     toggleCompletion(id) {
       const task = this.tasks.find((t) => t.id === id);
       if (task.completed) {
-        if (
-          window.confirm("Do you really want to set this task as incomplete?")
-        ) {
-          this.updateTask(task, false);
-        }
+        Swal.fire({
+          title: "Êtes-vous sûr?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Oui, continuer",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.updateTask(task, false);
+          }
+        });
       } else {
         this.updateTask(task, true);
       }
@@ -125,9 +168,5 @@ th {
 .text-decoration-line-through {
   text-decoration: line-through;
   color: red !important;
-}
-.completed-task {
-  text-decoration: line-through;
-  color: red;
 }
 </style>
