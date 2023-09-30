@@ -9,18 +9,17 @@
       />
       <button type="submit" class="btn btn-primary ms-2">Sauvegarder</button>
     </form>
-    <table class="table table-striped">
+    <table class="table table-dark table-hover table-equal-width">
       <thead>
         <tr>
           <th scope="col">Tâches</th>
-          <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="task in tasks" :key="task.id">
+        <tr v-for="task in tasks" :key="task.id" class="table-equal-width">
           <td :class="{ 'text-decoration-line-through': task.completed }">
             <div class="row">
-              <div class="col-md-8" style="text-align: left">
+              <div class="col-md-10" style="text-align: left">
                 <input
                   v-if="task.editing"
                   v-model="task.newName"
@@ -29,7 +28,7 @@
                 />
                 <span v-else>{{ task.name }}</span>
               </div>
-              <div class="col-md-4 text-end">
+              <div class="col-md-2 text-end">
                 <button
                   @click="toggleCompletion(task.id)"
                   :class="[
@@ -39,16 +38,18 @@
                     'me-2',
                   ]"
                 >
-                  {{ task.completed ? "Annuler Complete" : "Marquer Complete" }}
+                  <i
+                    :class="task.completed ? 'fas fa-times' : 'fas fa-check'"
+                  ></i>
                 </button>
                 <button @click="toggleEdit(task)" class="btn btn-primary me-2">
-                  {{ task.editing ? "Sauvegarder" : "Modifier" }}
+                  <i :class="task.editing ? 'fas fa-save' : 'fas fa-edit'"></i>
                 </button>
                 <button
                   @click="confirmDeleteTask(task.id)"
                   class="btn btn-danger me-2"
                 >
-                  Supprimer
+                  <i class="fas fa-trash"></i>
                 </button>
               </div>
             </div>
@@ -151,15 +152,6 @@ body {
   color: #2c3e50;
 }
 
-table {
-  width: 100%;
-  margin-top: 20px;
-}
-
-th {
-  text-align: left;
-}
-
 .completed {
   text-decoration: line-through;
   color: red;
@@ -168,5 +160,10 @@ th {
 .text-decoration-line-through {
   text-decoration: line-through;
   color: red !important;
+}
+
+.table-equal-width {
+  display: table;
+  width: 100%;
 }
 </style>
