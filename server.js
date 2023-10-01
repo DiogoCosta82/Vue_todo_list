@@ -18,15 +18,15 @@ r.connect(
           console.log(row);
           switch (row.type) {
             case "change":
-              io.emit("taskChange", row.new_val); // Ajusté pour correspondre au client
+              io.emit("taskChange", row.new_val);
               break;
 
             case "add":
-              io.emit("taskAdd", row.new_val); // Ajusté pour correspondre au client
+              io.emit("addTask", row.new_val);
               break;
 
             case "remove":
-              io.emit("taskDelete", row.old_val.id); // Ajusté pour correspondre au client
+              io.emit("taskDelete", row.old_val.id);
               break;
 
             default:

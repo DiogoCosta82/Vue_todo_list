@@ -4,6 +4,7 @@
     <form @submit.prevent="addTask" class="d-flex justify-content-between mb-3">
       <input
         type="text"
+        v-model="newTask"
         placeholder="Inserer ici votre nouvelle tâche...."
         class="form-control"
       />
@@ -12,7 +13,20 @@
     <table class="table table-dark table-hover table-equal-width">
       <thead>
         <tr>
-          <th scope="col">Tâches</th>
+          <th class="col-md-10">Tâches</th>
+          <th class="col-md-2 text-end">
+            <div class="search-box">
+              <input
+                v-model="searchTerm"
+                type="text"
+                placeholder="Rechercher..."
+                class="search-input"
+              />
+              <button @click="searchTasks" class="search-button">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -57,6 +71,24 @@
         </tr>
       </tbody>
     </table>
+    <div v-if="filteredTasks.length">
+      <h2>Ma recherche des tâches</h2>
+      <table class="table table-dark table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Résultats de recherche</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="task in filteredTasks" :key="task.id">
+            <td>{{ task.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button @click="clearSearch" class="btn btn-secondary mt-2">
+        <i class="fas fa-times"></i> Effacer la recherche
+      </button>
+    </div>
   </div>
 </template>
 
@@ -67,6 +99,9 @@ export default {
   data() {
     return {
       tasks: [],
+      newTask: "",
+      searchTerm: "",
+      filteredTasks: [],
     };
   },
   mounted() {
@@ -85,6 +120,24 @@ export default {
     });
   },
   methods: {
+    addTask() {
+      const task = { name: this.newTask, completed: false };
+      axios
+        .post("http://localhost:3000/tasks", task)
+        .then((res) => {
+          this.tasks.push({
+            ...task,
+            id: res.data.id,
+            editing: false,
+            newName: "",
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      this.newTask = "";
+    },
+
     toggleEdit(task) {
       if (task.editing) {
         this.editTask(task);
@@ -136,6 +189,29 @@ export default {
           console.log(err);
         });
     },
+    confirmDeleteTask(id) {
+      const confirmed = window.confirm(
+        "Êtes-vous sûr de vouloir supprimer cette tâche ?"
+      );
+      if (confirmed) {
+        this.deleteTask(id);
+      }
+    },
+    deleteTask(id) {
+      axios.delete(`http://localhost:3000/tasks/${id}`).then(() => {
+        // Enlever la tâche de l'état local
+        this.tasks = this.tasks.filter((t) => t.id !== id);
+      });
+    },
+    searchTasks() {
+      this.filteredTasks = this.tasks.filter((task) =>
+        task.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    },
+    clearSearch() {
+      this.filteredTasks = [];
+      this.searchTerm = "";
+    },
   },
 };
 </script>
@@ -163,7 +239,32 @@ body {
 }
 
 .table-equal-width {
-  display: table;
   width: 100%;
+  table-layout: fixed;
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 5px 30px 5px 5px; /* padding-right à 30px pour faire de la place pour le bouton */
+}
+
+.search-button {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.form-control-sm {
+  width: auto;
 }
 </style>
