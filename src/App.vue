@@ -1,99 +1,116 @@
 <template>
-  <div id="app" class="container mt-5">
-    <h1 class="text-center mb-4">Vue To-do List</h1>
-    <form @submit.prevent="addTask" class="d-flex justify-content-between mb-3">
-      <input
-        type="text"
-        v-model="newTask"
-        placeholder="Inserer ici votre nouvelle tâche...."
-        class="form-control"
-      />
-      <button type="submit" class="btn btn-primary ms-2">Sauvegarder</button>
-    </form>
-    <table class="table table-dark table-hover table-equal-width">
-      <thead>
-        <tr>
-          <th class="col-md-10">Tâches</th>
-          <th class="col-md-2 text-end">
-            <div class="search-box">
-              <input
-                v-model="searchTerm"
-                type="text"
-                placeholder="Rechercher..."
-                class="search-input"
-              />
-              <button @click="searchTasks" class="search-button">
-                <i class="fas fa-search"></i>
-              </button>
-            </div>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="task in tasks" :key="task.id" class="table-equal-width">
-          <td :class="{ 'text-decoration-line-through': task.completed }">
-            <div class="row">
-              <div class="col-md-10" style="text-align: left">
-                <input
-                  v-if="task.editing"
-                  v-model="task.newName"
-                  type="text"
-                  class="form-control"
-                />
-                <span v-else>{{ task.name }}</span>
+  <div id="app">
+    <!-- Barre de nav -->
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand">Projet To-Do Liste en Vue.JS</a>
+        <div class="d-flex">
+          <input
+            v-model="searchTerm"
+            type="text"
+            placeholder="Rechercher..."
+            class="form-control me-2"
+          />
+          <button @click="searchTasks" class="btn btn-outline-success">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+    <!--Insertion tâche -->
+    <div class="container mt-5">
+      <form
+        @submit.prevent="addTask"
+        class="d-flex justify-content-between mb-3"
+      >
+        <input
+          type="text"
+          v-model="newTask"
+          placeholder="Inserer ici votre nouvelle tâche...."
+          class="form-control"
+        />
+        <button type="submit" class="btn btn-primary ms-2">Sauvegarder</button>
+      </form>
+      <!-- Tâches -->
+      <div class="container mt-5 taches">
+        <div class="mb-3" v-for="task in tasks" :key="task.id">
+          <div class="card">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-10">
+                  <h5
+                    class="card-title"
+                    :class="{ 'text-decoration-line-through': task.completed }"
+                  >
+                    <span v-if="!task.editing">{{ task.name }}</span>
+                    <input
+                      v-if="task.editing"
+                      v-model="task.newName"
+                      type="text"
+                      class="form-control"
+                    />
+                  </h5>
+                </div>
+                <div class="col-md-2 text-end">
+                  <button
+                    @click="toggleCompletion(task.id)"
+                    :class="[
+                      task.completed
+                        ? 'btn btn-outline-warning text-black'
+                        : 'btn btn-success',
+                      'me-2',
+                    ]"
+                  >
+                    <i
+                      :class="task.completed ? 'fas fa-times' : 'fas fa-check'"
+                    ></i>
+                  </button>
+                  <button
+                    @click="toggleEdit(task)"
+                    class="btn btn-primary me-2"
+                  >
+                    <i
+                      :class="task.editing ? 'fas fa-save' : 'fas fa-edit'"
+                    ></i>
+                  </button>
+                  <button
+                    @click="confirmDeleteTask(task.id)"
+                    class="btn btn-danger me-2"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
               </div>
-              <div class="col-md-2 text-end">
-                <button
-                  @click="toggleCompletion(task.id)"
-                  :class="[
-                    task.completed
-                      ? 'btn btn-outline-warning text-black'
-                      : 'btn btn-success',
-                    'me-2',
-                  ]"
-                >
-                  <i
-                    :class="task.completed ? 'fas fa-times' : 'fas fa-check'"
-                  ></i>
-                </button>
-                <button @click="toggleEdit(task)" class="btn btn-primary me-2">
-                  <i :class="task.editing ? 'fas fa-save' : 'fas fa-edit'"></i>
-                </button>
-                <button
-                  @click="confirmDeleteTask(task.id)"
-                  class="btn btn-danger me-2"
-                >
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-if="filteredTasks.length">
-      <h2>Ma recherche des tâches</h2>
-      <table class="table table-dark table-hover">
-        <thead>
-          <tr>
-            <th scope="col">Résultats de recherche</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="task in filteredTasks" :key="task.id">
-            <td>{{ task.name }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <button @click="clearSearch" class="btn btn-secondary mt-2">
-        <i class="fas fa-times"></i> Effacer la recherche
-      </button>
+          </div>
+        </div>
+      </div>
+      <!-- Tableau pour les résultats de recherche -->
+      <div v-if="filteredTasks.length">
+        <h2>Ma recherche des tâches</h2>
+        <table class="table table-dark table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Résultats de recherche</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="task in filteredTasks" :key="task.id">
+              <td>{{ task.name }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <button @click="clearSearch" class="btn btn-secondary mt-2">
+          <i class="fas fa-times"></i> Effacer la recherche
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default {
   data() {
@@ -140,7 +157,19 @@ export default {
 
     toggleEdit(task) {
       if (task.editing) {
-        this.editTask(task);
+        Swal.fire({
+          title: "Êtes-vous sûr?",
+          text: "Voulez-vous vraiment enregistrer les modifications?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Oui, enregistrer!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.editTask(task);
+          }
+        });
       } else {
         task.newName = task.name;
       }
@@ -163,6 +192,7 @@ export default {
       if (task.completed) {
         Swal.fire({
           title: "Êtes-vous sûr?",
+          text: "Voulez-vous reprendre la tâche ?",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#3085d6",
@@ -190,12 +220,20 @@ export default {
         });
     },
     confirmDeleteTask(id) {
-      const confirmed = window.confirm(
-        "Êtes-vous sûr de vouloir supprimer cette tâche ?"
-      );
-      if (confirmed) {
-        this.deleteTask(id);
-      }
+      Swal.fire({
+        title: "Êtes-vous sûr?",
+        text: "Vous ne pourrez pas revenir en arrière !",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Oui, supprimer !",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.deleteTask(id);
+          Swal.fire("Supprimé!", "Votre tâche a été supprimée.", "success");
+        }
+      });
     },
     deleteTask(id) {
       axios.delete(`http://localhost:3000/tasks/${id}`).then(() => {
@@ -215,56 +253,3 @@ export default {
   },
 };
 </script>
-
-<style>
-body {
-  background: linear-gradient(to bottom, #87ceeb, #d3d3d3);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-}
-#app {
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: center;
-  color: #2c3e50;
-}
-
-.completed {
-  text-decoration: line-through;
-  color: red;
-}
-
-.text-decoration-line-through {
-  text-decoration: line-through;
-  color: red !important;
-}
-
-.table-equal-width {
-  width: 100%;
-  table-layout: fixed;
-}
-
-.search-box {
-  position: relative;
-  width: 100%;
-}
-
-.search-input {
-  width: 100%;
-  padding: 5px 30px 5px 5px; /* padding-right à 30px pour faire de la place pour le bouton */
-}
-
-.search-button {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 5px;
-  cursor: pointer;
-}
-
-.form-control-sm {
-  width: auto;
-}
-</style>
