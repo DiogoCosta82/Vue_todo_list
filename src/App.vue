@@ -31,10 +31,68 @@
         />
         <button type="submit" class="btn btn-primary ms-2">Sauvegarder</button>
       </form>
+      <!-- Tableau pour les résultats de recherche -->
+      <div class="recherche" v-if="filteredTasks.length">
+        <div class="container mt-5">
+          <h2>Resultats de la recherche.</h2>
+          <div class="mb-3" v-for="task in filteredTasks" :key="task.id">
+            <div class="card" :class="{ blink: task.isNew }">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-10">
+                    <h5
+                      class="card-title"
+                      :class="{
+                        'text-decoration-line-through': task.completed,
+                      }"
+                    >
+                      {{ task.name }}
+                    </h5>
+                  </div>
+                  <div class="col-md-2 text-end">
+                    <button
+                      @click="toggleCompletion(task.id)"
+                      :class="[
+                        task.completed
+                          ? 'btn btn-outline-warning text-black'
+                          : 'btn btn-success',
+                        'me-2',
+                      ]"
+                    >
+                      <i
+                        :class="
+                          task.completed ? 'fas fa-times' : 'fas fa-check'
+                        "
+                      ></i>
+                    </button>
+                    <button
+                      @click="toggleEdit(task)"
+                      class="btn btn-primary me-2"
+                    >
+                      <i
+                        :class="task.editing ? 'fas fa-save' : 'fas fa-edit'"
+                      ></i>
+                    </button>
+                    <button
+                      @click="confirmDeleteTask(task.id)"
+                      class="btn btn-danger me-2"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button @click="clearSearch" class="btn btn-secondary mt-2">
+          <i class="fas fa-times"></i> Effacer la recherche
+        </button>
+      </div>
       <!-- Tâches -->
-      <div class="container mt-5 taches">
+      <div class="container mt-5">
         <div class="mb-3" v-for="task in tasks" :key="task.id">
-          <div class="card">
+          <div class="card custom-card" :class="{ blink: task.isNew }">
             <div class="card-body">
               <div class="row">
                 <div class="col-md-10">
@@ -85,25 +143,6 @@
           </div>
         </div>
       </div>
-      <!-- Tableau pour les résultats de recherche -->
-      <div v-if="filteredTasks.length">
-        <h2>Ma recherche des tâches</h2>
-        <table class="table table-dark table-hover">
-          <thead>
-            <tr>
-              <th scope="col">Résultats de recherche</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="task in filteredTasks" :key="task.id">
-              <td>{{ task.name }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button @click="clearSearch" class="btn btn-secondary mt-2">
-          <i class="fas fa-times"></i> Effacer la recherche
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -138,7 +177,7 @@ export default {
   },
   methods: {
     addTask() {
-      const task = { name: this.newTask, completed: false };
+      const task = { name: this.newTask, completed: false, isNew: true };
       axios
         .post("http://localhost:3000/tasks", task)
         .then((res) => {
@@ -148,6 +187,9 @@ export default {
             editing: false,
             newName: "",
           });
+          setTimeout(() => {
+            this.tasks[this.tasks.length - 1].isNew = false;
+          }, 1500);
         })
         .catch((err) => {
           console.log(err);

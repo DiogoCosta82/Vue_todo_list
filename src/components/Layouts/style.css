@@ -28,6 +28,7 @@ body {
     0.3s -webkit-transform cubic-bezier(0.155, 1.105, 0.295, 1.12);
   color: white;
   cursor: pointer;
+  text-align: left;
 }
 
 .card:hover {
@@ -36,4 +37,26 @@ body {
 }
 .mt-5 {
   margin-top: 4rem !important;
+}
+
+@keyframes blink {
+  0% {
+    border-color: red;
+  }
+  50% {
+    border-color: transparent;
+  }
+  100% {
+    border-color: red;
+  }
+}
+
+.blink {
+  animation: blink 1s linear infinite;
+  border-width: 4px; /* Réglez la taille de la bordure ici */
+  border-style: solid;
+}
+
+.recherche {
+  margin-top: 5%;
 }
