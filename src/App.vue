@@ -29,6 +29,11 @@
           placeholder="Inserer ici votre nouvelle tâche...."
           class="form-control"
         />
+        <select v-model="selectedUser" class="form-select ms-2">
+          <option v-for="user in users" :key="user" :value="user">
+            {{ user }}
+          </option>
+        </select>
         <button type="submit" class="btn btn-primary ms-2">Sauvegarder</button>
       </form>
       <!-- Tableau pour les résultats de recherche -->
@@ -96,10 +101,7 @@
             <div class="card-body">
               <div class="row">
                 <div class="col-md-10">
-                  <h5
-                    class="card-title"
-                    :class="{ 'text-decoration-line-through': task.completed }"
-                  >
+                  <h5 class="card-title">
                     <span v-if="!task.editing">{{ task.name }}</span>
                     <input
                       v-if="task.editing"
@@ -108,6 +110,20 @@
                       class="form-control"
                     />
                   </h5>
+                  <p>
+                    <span v-if="!task.editing"
+                      >Assigné à: {{ task.assignedUser }}</span
+                    >
+                    <select
+                      v-if="task.editing"
+                      v-model="task.newAssignedUser"
+                      class="form-select"
+                    >
+                      <option v-for="user in users" :key="user" :value="user">
+                        {{ user }}
+                      </option>
+                    </select>
+                  </p>
                 </div>
                 <div class="col-md-2 text-end">
                   <button
@@ -158,42 +174,43 @@ export default {
       newTask: "",
       searchTerm: "",
       filteredTasks: [],
+      users: ["toto", "tata", "titi"],
+      selectedUser: null,
     };
   },
   mounted() {
+    // Initialize tasks from server
     axios.get("http://localhost:3000/tasks").then((res) => {
-      this.tasks = res.data.map((task) => ({
-        ...task,
-        editing: false,
-        newName: "",
-      }));
+      this.tasks = res.data;
     });
 
     // Listen for changes
-    this.$socket.on("taskChanged", (task) => {
+    this.$socket.on("taskChange", (task) => {
       const taskToUpdate = this.tasks.find((t) => t.id === task.id);
       Object.assign(taskToUpdate, task);
+    });
+    // Listen for "taskAdd"
+    this.$socket.on("taskAdd", (task) => {
+      if (!this.tasks.some((t) => t.id === task.id)) {
+        this.tasks.push(task);
+      }
+    });
+
+    // Listen for "taskDelete"
+    this.$socket.on("taskDelete", (id) => {
+      this.tasks = this.tasks.filter((task) => task.id !== id);
     });
   },
   methods: {
     addTask() {
-      const task = { name: this.newTask, completed: false, isNew: true };
-      axios
-        .post("http://localhost:3000/tasks", task)
-        .then((res) => {
-          this.tasks.push({
-            ...task,
-            id: res.data.id,
-            editing: false,
-            newName: "",
-          });
-          setTimeout(() => {
-            this.tasks[this.tasks.length - 1].isNew = false;
-          }, 1500);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      const task = {
+        name: this.newTask,
+        completed: false,
+        assignedUser: this.selectedUser,
+      };
+      axios.post("http://localhost:3000/tasks", task).catch((err) => {
+        console.log(err);
+      });
       this.newTask = "";
     },
 
@@ -214,15 +231,29 @@ export default {
         });
       } else {
         task.newName = task.name;
+        task.newAssignedUser = task.assignedUser;
       }
       task.editing = !task.editing;
     },
     editTask(task) {
+      const updatedFields = {};
       if (task.newName !== task.name) {
+        updatedFields.name = task.newName;
+      }
+      if (task.newAssignedUser !== task.assignedUser) {
+        updatedFields.assignedUser = task.newAssignedUser;
+      }
+
+      if (Object.keys(updatedFields).length > 0) {
         axios
-          .put(`http://localhost:3000/tasks/${task.id}`, { name: task.newName })
+          .put(`http://localhost:3000/tasks/${task.id}`, updatedFields)
           .then(() => {
-            task.name = task.newName;
+            if (updatedFields.name) {
+              task.name = task.newName;
+            }
+            if (updatedFields.assignedUser) {
+              task.assignedUser = task.newAssignedUser;
+            }
           })
           .catch((err) => {
             console.log(err);
@@ -279,7 +310,6 @@ export default {
     },
     deleteTask(id) {
       axios.delete(`http://localhost:3000/tasks/${id}`).then(() => {
-        // Enlever la tâche de l'état local
         this.tasks = this.tasks.filter((t) => t.id !== id);
       });
     },

@@ -11,7 +11,7 @@ body {
 
 .completed {
   text-decoration: line-through;
-  color: red;
+  color: red !important;
 }
 
 .text-decoration-line-through {
@@ -37,24 +37,6 @@ body {
 }
 .mt-5 {
   margin-top: 4rem !important;
-}
-
-@keyframes blink {
-  0% {
-    border-color: red;
-  }
-  50% {
-    border-color: transparent;
-  }
-  100% {
-    border-color: red;
-  }
-}
-
-.blink {
-  animation: blink 1s linear infinite;
-  border-width: 4px; /* Réglez la taille de la bordure ici */
-  border-style: solid;
 }
 
 .recherche {

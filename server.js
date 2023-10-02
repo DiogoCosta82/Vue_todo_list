@@ -22,7 +22,7 @@ r.connect(
               break;
 
             case "add":
-              io.emit("addTask", row.new_val);
+              io.emit("taskAdd", row.new_val);
               break;
 
             case "remove":
@@ -97,7 +97,7 @@ app.put("/tasks/:id", (req, res) => {
         .get(id)
         .run(connection, function (err, result) {
           if (err) throw err;
-          io.emit("taskChanged", result); // Name changed here to match client
+          io.emit("taskChanged", result);
         });
     });
 });
