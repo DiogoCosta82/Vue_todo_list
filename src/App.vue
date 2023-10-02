@@ -76,7 +76,7 @@
                     >
                       <i
                         :class="
-                          task.completed ? 'fas fa-times' : 'fas fa-check'
+                          task.completed ? 'fas fa-history' : 'fas fa-check'
                         "
                       ></i>
                     </button>
@@ -161,7 +161,9 @@
                     ]"
                   >
                     <i
-                      :class="task.completed ? 'fas fa-times' : 'fas fa-check'"
+                      :class="
+                        task.completed ? 'fas fa-history' : 'fas fa-check'
+                      "
                     ></i>
                   </button>
                   <button
