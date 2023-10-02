@@ -117,11 +117,16 @@
       <!-- Tâches -->
       <div class="container mt-5">
         <div class="mb-3" v-for="task in tasks" :key="task.id">
-          <div class="card custom-card" :class="{ blink: task.isNew }">
+          <div class="card custom-card">
             <div class="card-body">
               <div class="row">
                 <div class="col-md-10">
-                  <h5 class="card-title">
+                  <h5
+                    class="card-title"
+                    :class="{
+                      'text-decoration-line-through': task.completed,
+                    }"
+                  >
                     <span v-if="!task.editing">{{ task.name }}</span>
                     <input
                       v-if="task.editing"
