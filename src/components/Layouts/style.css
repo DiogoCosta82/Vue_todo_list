@@ -1,6 +1,7 @@
 body {
-  background: linear-gradient(to bottom, #87ceeb, #d3d3d3);
+  background-image: url("../img/back.png");
   background-repeat: no-repeat;
+  background-size: cover;
   background-attachment: fixed;
 }
 #app {
@@ -41,4 +42,18 @@ body {
 
 .recherche {
   margin-top: 5%;
+}
+
+.task_user {
+  color: lightseagreen;
+}
+.alertMessage {
+  margin-top: 50px;
+  margin-bottom: -40px;
+  color: red;
+  font-weight: bolder;
+}
+
+.choix {
+  margin-bottom: -2px;
 }

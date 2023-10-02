@@ -23,25 +23,35 @@
         @submit.prevent="addTask"
         class="d-flex justify-content-between mb-3"
       >
-        <input
-          type="text"
-          v-model="newTask"
-          placeholder="Inserer ici votre nouvelle tâche...."
-          class="form-control"
-        />
-        <select v-model="selectedUser" class="form-select ms-2">
-          <option v-for="user in users" :key="user" :value="user">
-            {{ user }}
-          </option>
-        </select>
-        <button type="submit" class="btn btn-primary ms-2">Sauvegarder</button>
+        <div class="col-md-8">
+          <p class="choix" style="font-weight: bolder">
+            Inserer ici votre nouvelle tâche
+          </p>
+          <input type="text" v-model="newTask" class="form-control" />
+        </div>
+        <div class="col-md-2">
+          <p class="choix" style="font-weight: bolder">Utilisateur</p>
+          <select v-model="selectedUser" class="form-select ms-2">
+            <option v-for="user in users" :key="user" :value="user">
+              {{ user }}
+            </option>
+          </select>
+        </div>
+        <div
+          class="col-md-2 d-flex align-items-center"
+          style="margin-top: 22px"
+        >
+          <button type="submit" class="btn btn-warning ms-4">
+            Sauvegarder
+          </button>
+        </div>
       </form>
       <!-- Tableau pour les résultats de recherche -->
       <div class="recherche" v-if="filteredTasks.length">
         <div class="container mt-5">
           <h2>Resultats de la recherche.</h2>
           <div class="mb-3" v-for="task in filteredTasks" :key="task.id">
-            <div class="card" :class="{ blink: task.isNew }">
+            <div class="card">
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-10">
@@ -61,7 +71,7 @@
                         task.completed
                           ? 'btn btn-outline-warning text-black'
                           : 'btn btn-success',
-                        'me-2',
+                        'me-2 me-md-3',
                       ]"
                     >
                       <i
@@ -72,7 +82,7 @@
                     </button>
                     <button
                       @click="toggleEdit(task)"
-                      class="btn btn-primary me-2"
+                      class="btn btn-primary me-2 me-md-3"
                     >
                       <i
                         :class="task.editing ? 'fas fa-save' : 'fas fa-edit'"
@@ -80,7 +90,7 @@
                     </button>
                     <button
                       @click="confirmDeleteTask(task.id)"
-                      class="btn btn-danger me-2"
+                      class="btn btn-danger me-2 me-md-3"
                     >
                       <i class="fas fa-trash"></i>
                     </button>
@@ -93,6 +103,16 @@
         <button @click="clearSearch" class="btn btn-secondary mt-2">
           <i class="fas fa-times"></i> Effacer la recherche
         </button>
+      </div>
+      <!-- Message si aucune tâche n'est trouvée -->
+      <div
+        class="alertMessage"
+        v-else-if="searchPerformed && showNoResultsMessage"
+      >
+        <p>
+          Aucune tâche correspondant à votre recherche n'a été trouvée. Essayez
+          à nouveau.
+        </p>
       </div>
       <!-- Tâches -->
       <div class="container mt-5">
@@ -110,8 +130,8 @@
                       class="form-control"
                     />
                   </h5>
-                  <p>
-                    <span v-if="!task.editing"
+                  <p style="margin-top: 2rem">
+                    <span class="task_user" v-if="!task.editing"
                       >Assigné à: {{ task.assignedUser }}</span
                     >
                     <select
@@ -132,7 +152,7 @@
                       task.completed
                         ? 'btn btn-outline-warning text-black'
                         : 'btn btn-success',
-                      'me-2',
+                      'me-2 me-md-3',
                     ]"
                   >
                     <i
@@ -141,7 +161,7 @@
                   </button>
                   <button
                     @click="toggleEdit(task)"
-                    class="btn btn-primary me-2"
+                    class="btn btn-primary me-2 me-md-3"
                   >
                     <i
                       :class="task.editing ? 'fas fa-save' : 'fas fa-edit'"
@@ -149,7 +169,7 @@
                   </button>
                   <button
                     @click="confirmDeleteTask(task.id)"
-                    class="btn btn-danger me-2"
+                    class="btn btn-danger me-2 me-md-3"
                   >
                     <i class="fas fa-trash"></i>
                   </button>
@@ -176,6 +196,8 @@ export default {
       filteredTasks: [],
       users: ["toto", "tata", "titi"],
       selectedUser: null,
+      searchPerformed: false,
+      showNoResultsMessage: false,
     };
   },
   mounted() {
@@ -212,6 +234,7 @@ export default {
         console.log(err);
       });
       this.newTask = "";
+      this.selectedUser = null;
     },
 
     toggleEdit(task) {
@@ -317,6 +340,14 @@ export default {
       this.filteredTasks = this.tasks.filter((task) =>
         task.name.toLowerCase().includes(this.searchTerm.toLowerCase())
       );
+      this.searchPerformed = true;
+
+      if (this.filteredTasks.length === 0) {
+        this.showNoResultsMessage = true;
+        setTimeout(() => {
+          this.showNoResultsMessage = false;
+        }, 3000);
+      }
     },
     clearSearch() {
       this.filteredTasks = [];
