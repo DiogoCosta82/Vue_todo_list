@@ -45,7 +45,7 @@ body {
 }
 
 .task_user {
-  color: lightseagreen;
+  color: rgb(221, 101, 127);
 }
 .alertMessage {
   margin-top: 50px;
